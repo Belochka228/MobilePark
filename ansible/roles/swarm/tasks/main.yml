@@ -1,0 +1,40 @@
+---
+- name: Check if Swarm is already initialized
+  command: docker info --format '{{ '{{' }}.Swarm.LocalNodeState{{ '}}' }}'
+  register: swarm_state
+  changed_when: false
+
+- name: Initialize Swarm on manager
+  command: docker swarm init --advertise-addr {{ ansible_host }}
+  when:
+    - inventory_hostname in groups['managers']
+    - swarm_state.stdout != 'active'
+
+- name: Get worker join token
+  command: docker swarm join-token -q worker
+  register: worker_token
+  when: inventory_hostname in groups['managers']
+  changed_when: false
+
+- name: Share token to dummy host
+  add_host:
+    name: swarm_token_holder
+    worker_token: "{{ worker_token.stdout }}"
+    manager_host: "{{ ansible_host }}"
+  when: inventory_hostname in groups['managers']
+  changed_when: false
+
+- name: Join workers to Swarm
+  command: >
+    docker swarm join
+    --token {{ hostvars['swarm_token_holder']['worker_token'] }}
+    {{ hostvars['swarm_token_holder']['manager_host'] }}:2377
+  when:
+    - inventory_hostname in groups['workers']
+    - swarm_state.stdout != 'active'
+
+- name: Add SERVERTYPE=worker label to worker nodes
+  command: docker node update --label-add SERVERTYPE=worker {{ item }}
+  loop: "{{ groups['workers'] }}"
+  when: inventory_hostname in groups['managers']
+  changed_when: false

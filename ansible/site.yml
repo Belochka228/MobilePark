@@ -1,0 +1,12 @@
+---
+- name: Prepare all servers
+  hosts: all
+  roles:
+    - common
+    - users
+    - docker
+
+- name: Configure Swarm cluster
+  hosts: all
+  roles:
+    - swarm

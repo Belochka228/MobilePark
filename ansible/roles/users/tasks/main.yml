@@ -1,0 +1,32 @@
+---
+- name: Create admin users
+  user:
+    name: "{{ item.name }}"
+    groups: "{{ item.groups }}"
+    shell: /bin/bash
+    create_home: true
+    state: present
+  loop: "{{ admin_users }}"
+
+- name: Create technical users
+  user:
+    name: "{{ item.name }}"
+    groups: "{{ item.groups }}"
+    shell: /bin/bash
+    create_home: true
+    state: present
+  loop: "{{ technical_users }}"
+
+- name: Set authorized keys for admin users
+  authorized_key:
+    user: "{{ item.name }}"
+    state: present
+    key: "{{ lookup('file', 'files/' + item.name + '.pub') }}"
+  loop: "{{ admin_users }}"
+
+- name: Set authorized keys for technical users
+  authorized_key:
+    user: "{{ item.name }}"
+    state: present
+    key: "{{ lookup('file', 'files/' + item.name + '.pub') }}"
+  loop: "{{ technical_users }}"

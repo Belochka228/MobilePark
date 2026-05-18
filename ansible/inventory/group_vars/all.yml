@@ -1,0 +1,21 @@
+common_packages:
+  - mc
+  - ncdu
+  - cifs-utils
+  - nfs-common
+
+docker_version: "24.0.7-1~ubuntu.22.04~jammy"
+
+admin_users:
+  - name: admin-1
+    groups: sudo
+  - name: admin-2
+    groups: sudo
+  - name: admin-3
+    groups: sudo
+
+technical_users:
+  - name: ansible
+    groups: sudo
+  - name: autodeploy
+    groups: docker
