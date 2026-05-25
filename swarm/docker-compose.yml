@@ -4,42 +4,63 @@ services:
   app:
     image: ubuntu:22.04
     command: sleep infinity
-
     environment:
       - HOSTNAME={{.Node.Hostname}}
-
     networks:
       - db-postgres-net
       - ds-redis-net
-
     volumes:
       - /var/log/app:/var/log/app
-
     deploy:
       replicas: 2
-
       update_config:
         parallelism: 1
         delay: 10s
         order: start-first
-
       placement:
         constraints:
           - node.labels.SERVERTYPE == worker
-
       resources:
         limits:
           cpus: "1"
           memory: 500M
-
     logging:
       driver: json-file
       options:
         max-size: "5m"
         max-file: "1"
 
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: testdb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - db-postgres-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+  redis:
+    image: redis:7
+    networks:
+      - ds-redis-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
 networks:
   db-postgres-net:
-    external: true
+    driver: overlay
   ds-redis-net:
-    external: true
+    driver: overlay
+
+volumes:
+  postgres_data:
+    driver: local
