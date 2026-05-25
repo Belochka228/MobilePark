@@ -4,7 +4,8 @@ common_packages:
   - cifs-utils
   - nfs-common
 
-docker_version: "24.0.7-1~ubuntu.22.04~jammy"
+docker_version: "5:27.5.1-1~ubuntu.24.04~noble"
+
 
 admin_users:
   - name: admin-1
